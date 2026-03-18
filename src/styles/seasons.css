@@ -1,0 +1,548 @@
+
+/* ========================================
+   凛冬模式 (Winter Theme)
+   ======================================== */
+/* 基础冬季覆盖 - 仅对特定元素微调，不强制全局覆盖 */
+.winter-scene {
+  /* 仅在冬季生效的局部变量 */
+  --winter-accent: #7DD3FC;
+  --winter-border: 1px solid rgba(125, 211, 252, 0.3);
+}
+
+/* 凛冬 + 幽都模式 (Dark Winter) */
+[data-theme="dark"] .winter-scene {
+  --c-ink: #E2E8F0;      /* 冰雪白 */
+  --c-paper: #020617;    /* 极夜黑 */
+  --c-paper-dark: #0F172A;
+  --c-ochre: #7DD3FC;    /* 冰晶蓝 */
+  
+  --primary-brown: #1E293B;
+  --light-beige: #334155;
+  --dark-brown: #0F172A;
+  --deep-coffee: #7DD3FC;
+
+  --color-text-main: var(--c-ink);
+  --text-secondary: #94A3B8;
+  --color-bg: var(--c-paper);
+  --color-card-bg: var(--light-beige);
+  
+  --border-gold: var(--winter-border);
+  
+  /* 主内容区背景 - 凛冬夜 */
+  --main-mask-color: rgba(2, 6, 23, 0.95);
+  --main-pattern-color: %237DD3FC;
+  --main-bg-image: linear-gradient(var(--main-mask-color), var(--main-mask-color)), url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%237DD3FC' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* 凛冬 + 人间模式 (Light Winter) - 雪后初晴 */
+.winter-scene:not([data-theme="dark"]) {
+  /* 保持原有浅色基调，但偏冷色 */
+  --c-ink: #334155;      /* 深蓝灰 */
+  --c-paper: #F8FAFC;    /* 雪白 */
+  --c-paper-dark: #E2E8F0;
+  --c-ochre: #0EA5E9;    /* 晴空蓝 */
+  
+  /* 木纹变为冷杉色 */
+  --primary-brown: #E2E8F0;
+  --light-beige: #F1F5F9;
+  --dark-brown: #CBD5E1;
+  --deep-coffee: #0F172A;
+
+  --color-text-main: var(--c-ink);
+  --text-secondary: #64748B;
+  --color-bg: var(--c-paper);
+  --color-card-bg: #FFFFFF;
+  
+  --border-gold: 1px solid rgba(14, 165, 233, 0.2);
+
+  /* 主内容区背景 - 雪原 */
+  --main-mask-color: rgba(248, 250, 252, 0.92);
+  --main-pattern-color: %230EA5E9;
+  --main-bg-image: linear-gradient(var(--main-mask-color), var(--main-mask-color)), url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230EA5E9' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* 1. 透视落雪 (Perspective Snowfall) */
+.snow-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  perspective: 1000px; /* 增加透视感 */
+  z-index: 5; /* 确保在顶层 */
+}
+
+.snowflake {
+  position: absolute;
+  /* 初始位置在屏幕中央区域，通过动画扩散 */
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  
+  animation-name: snowfall-perspective;
+  animation-timing-function: ease-in; /* 加速下落 */
+  animation-iteration-count: infinite;
+}
+
+@keyframes snowfall-perspective {
+  0% {
+    transform: translate3d(var(--start-x), var(--start-y), 500px) scale(2);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    /* 落向“地面”，即 Z=0，稍微缩小 */
+    transform: translate3d(var(--end-x), var(--end-y), 0px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* 2. 结冰池塘 (改造 Void Circle) */
+.winter-scene .void-circle {
+  /* 停止旋转，改为静止的冰面 */
+  animation: none;
+  /* 调整渐变：中间留白/透明，蓝色推向边缘，避免与中间文字冲突 */
+  background: radial-gradient(circle at center, 
+    transparent 0%, 
+    rgba(125, 211, 252, 0.05) 30%, 
+    var(--c-ochre) 90%, 
+    var(--c-paper-dark) 100%
+  );
+  opacity: 0.6;
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  box-shadow: 
+    0 0 80px rgba(125, 211, 252, 0.05),
+    inset 0 0 60px rgba(125, 211, 252, 0.05);
+  backdrop-filter: blur(2px);
+}
+
+/* 优化冬季模式下的文字可读性 */
+.winter-scene .stat-subtitle {
+  color: var(--c-ink); /* 使用主文字色（白/深灰）代替原本的蓝色 */
+  opacity: 0.9;
+  text-shadow: 0 0 5px rgba(125, 211, 252, 0.5);
+  font-weight: 500;
+}
+
+.winter-scene .stat-big-num {
+  /* 增强大数字的立体感和对比度 */
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* 冰面裂纹纹理 (利用伪元素) */
+.winter-scene .void-circle::before {
+  border: none;
+  animation: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.1' fill='%23ffffff'/%3E%3C/svg%3E");
+  opacity: 0.3;
+  mix-blend-mode: overlay;
+}
+
+/* 冰面光泽 (替代原有的波纹) */
+.winter-scene .void-circle::after {
+  border: none;
+  animation: iceShimmer 8s infinite linear;
+  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+  background-size: 200% 200%;
+}
+
+@keyframes iceShimmer {
+  0% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+/* 3. 装饰元素 (石头 & 枯枝) */
+.pond-decorations {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 600px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.snow-stone {
+  position: absolute;
+  background: #334155;
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  box-shadow: 
+    2px 4px 10px rgba(0, 0, 0, 0.4),
+    inset 2px 2px 5px rgba(255, 255, 255, 0.1);
+}
+
+/* 积雪 */
+.snow-stone::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: #F8FAFC;
+  border-radius: 40% 60% 70% 30% / 80% 80% 20% 20%;
+  opacity: 0.9;
+  filter: blur(1px);
+}
+
+.stone-1 {
+  width: 60px;
+  height: 40px;
+  bottom: 40px;
+  left: 80px;
+  transform: rotate(10deg);
+}
+
+.stone-2 {
+  width: 45px;
+  height: 35px;
+  bottom: 20px;
+  left: 130px;
+  transform: rotate(-20deg);
+}
+
+.stone-3 {
+  width: 80px;
+  height: 50px;
+  top: 50px;
+  right: 60px;
+  transform: rotate(150deg);
+}
+
+.dry-branch {
+  position: absolute;
+  background: #3f2e27;
+  width: 4px;
+  border-radius: 2px;
+}
+
+/* 简单的枯枝模拟 */
+.branch-1 {
+  height: 120px;
+  bottom: -20px;
+  right: 100px;
+  transform: rotate(25deg);
+  box-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* 分叉 */
+.branch-1::before {
+  content: '';
+  position: absolute;
+  top: 30px;
+  right: 0;
+  width: 3px;
+  height: 60px;
+  background: #3f2e27;
+  transform: rotate(-35deg);
+  transform-origin: bottom right;
+}
+
+.branch-1::after {
+  content: '';
+  position: absolute;
+  top: 0; /* 积雪 */
+  width: 100%;
+  height: 100%;
+  border-right: 1px solid rgba(255,255,255,0.4);
+}
+
+.branch-2 {
+  height: 80px;
+  top: 20px;
+  left: 40px;
+  transform: rotate(140deg);
+  width: 3px;
+}
+
+/* 交互波纹调整 */
+[data-theme="winter"] .interactive-ripple {
+  background: radial-gradient(circle, rgba(125, 211, 252, 0.4) 0%, transparent 60%);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .pond-decorations {
+    width: 380px;
+    height: 380px;
+  }
+}
+
+/* ========================================
+   春季模式 (Spring Theme)
+   ======================================== */
+.spring-scene {
+    --spring-primary: #ec4899; /* 桃粉 */
+    --spring-leaf: #84cc16;    /* 嫩绿 */
+}
+
+/* 花瓣粒子 */
+.sakura-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    perspective: 1000px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.sakura-petal {
+    position: absolute;
+    background: linear-gradient(120deg, #fbc2eb 0%, #a6c1ee 100%);
+    border-radius: 150% 0 150% 0;
+    opacity: 0.8;
+    animation: sakura-fall linear infinite;
+    pointer-events: none;
+}
+
+@keyframes sakura-fall {
+    0% {
+        transform: translate3d(var(--start-x), var(--start-y), 0) rotate(0deg) scale(0.6);
+        opacity: 0;
+    }
+    10% { opacity: 0.9; }
+    100% {
+        transform: translate3d(var(--end-x), var(--end-y), 200px) rotate(720deg) scale(1.2);
+        opacity: 0;
+    }
+}
+
+/* 春季池塘 */
+.spring-scene .void-circle {
+    background: radial-gradient(circle at center, 
+        rgba(167, 243, 208, 0.1) 0%, 
+        rgba(52, 211, 153, 0.2) 40%, 
+        rgba(6, 95, 70, 0.4) 80%
+    );
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    box-shadow: 
+        0 0 50px rgba(52, 211, 153, 0.2),
+        inset 0 0 30px rgba(167, 243, 208, 0.1);
+}
+
+/* 荷叶/浮萍 */
+.lily-pad {
+    position: absolute;
+    background: #4ade80;
+    border-radius: 50%;
+    opacity: 0.8;
+    box-shadow: inset 2px 2px 5px rgba(255,255,255,0.3);
+}
+
+/* 缺口 */
+.lily-pad::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50%;
+    height: 10%;
+    background: inherit; /* mask logic simplified for CSS */
+    transform-origin: left center;
+    transform: rotate(45deg);
+    /* actually better to use clip-path */
+}
+
+.lily-pad.type-1 {
+    width: 40px; height: 38px;
+    bottom: 30%; right: 25%;
+    transform: rotate(120deg);
+    background: #86efac;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 50%, 0% 100%);
+}
+
+.lily-pad.type-2 {
+    width: 25px; height: 24px;
+    bottom: 35%; right: 20%;
+    background: #4ade80;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 50% 50%, 0% 100%);
+    transform: rotate(-30deg);
+}
+
+/* 柳条 */
+.willow-branch {
+    position: absolute;
+    top: -20px;
+    width: 2px;
+    background: #a3e635;
+    border-radius: 0 0 50% 50%;
+    opacity: 0.8;
+    animation: sway 3s ease-in-out infinite alternate;
+    transform-origin: top center;
+}
+
+.willow-leaf {
+    position: absolute;
+    width: 8px;
+    height: 16px;
+    background: #bef264;
+    border-radius: 0 100% 0 100%;
+    left: -3px;
+}
+
+@keyframes sway {
+    from { transform: rotate(-5deg); }
+    to { transform: rotate(5deg); }
+}
+
+
+/* ========================================
+   夏季模式 (Summer Theme)
+   ======================================== */
+.summer-scene {
+    --summer-primary: #f59e0b; /* 萤火黄 */
+    --summer-water: #0ea5e9;   /* 深水蓝 */
+}
+
+/* 萤火虫 */
+.firefly-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.firefly {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #fde047;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #fde047, 0 0 15px #eab308;
+    animation: fly 10s infinite alternate;
+    opacity: 0;
+}
+
+@keyframes fly {
+    0% { transform: translate(0, 0); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+}
+
+/* 夏季池塘 - 波光粼粼 */
+.summer-scene .void-circle {
+    background: radial-gradient(circle at center, 
+        rgba(14, 165, 233, 0.2) 0%, 
+        rgba(3, 105, 161, 0.4) 60%, 
+        rgba(12, 74, 110, 0.6) 100%
+    );
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    box-shadow: 0 0 40px rgba(14, 165, 233, 0.3);
+}
+
+.summer-scene .void-circle::after {
+    background: linear-gradient(45deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 60%);
+    animation: summer-shimmer 3s infinite;
+}
+
+@keyframes summer-shimmer {
+    0% { transform: translateX(-100%) translateY(-100%); }
+    100% { transform: translateX(100%) translateY(100%); }
+}
+
+/* 盛开的荷花 */
+.lotus {
+    position: absolute;
+    bottom: 100px;
+    left: 80px;
+    width: 60px;
+    height: 60px;
+    /* 简单模拟花朵 */
+    background: radial-gradient(circle, #fbcfe8 20%, #db2777 100%);
+    clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);
+    transform: rotate(15deg);
+    opacity: 0.9;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* ========================================
+   秋季模式 (Autumn Theme)
+   ======================================== */
+.autumn-scene {
+    --autumn-primary: #d97706; /* 枫叶红 */
+    --autumn-gold: #f59e0b;    /* 银杏黄 */
+}
+
+/* 落叶 */
+.leaf-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    perspective: 800px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.maple-leaf {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #f97316;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    opacity: 0;
+    animation: leaf-fall linear infinite;
+}
+
+@keyframes leaf-fall {
+    0% {
+        transform: translate3d(var(--start-x), -20px, 0) rotate(0deg);
+        opacity: 0;
+    }
+    10% { opacity: 0.9; }
+    90% { opacity: 0.9; }
+    100% {
+        transform: translate3d(var(--end-x), 100vh, 100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* 秋季池塘 - 倒映金黄 */
+.autumn-scene .void-circle {
+    background: radial-gradient(circle at center, 
+        rgba(251, 146, 60, 0.1) 0%, 
+        rgba(124, 45, 18, 0.2) 50%, 
+        rgba(67, 20, 7, 0.5) 100%
+    );
+    border: 1px solid rgba(217, 119, 6, 0.3);
+    box-shadow: 0 0 50px rgba(217, 119, 6, 0.15);
+}
+
+.autumn-reed {
+    position: absolute;
+    bottom: 60px;
+    right: 80px;
+    width: 2px;
+    height: 80px;
+    background: #d4a373;
+    transform: rotate(15deg);
+    border-radius: 2px;
+}
+
+.autumn-reed::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -3px;
+    width: 8px;
+    height: 30px;
+    background: #eab308;
+    border-radius: 50%;
+    opacity: 0.8;
+}
