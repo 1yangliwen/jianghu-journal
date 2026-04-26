@@ -1,7 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RELATIONS } from '../db';
 
 export default function PersonForm({ person, onSubmit, onCancel }) {
+    useEffect(() => {
+        const handleKey = (e) => { if (e.key === 'Escape') onCancel(); };
+        document.addEventListener('keydown', handleKey);
+        return () => document.removeEventListener('keydown', handleKey);
+    }, [onCancel]);
+
     const [formData, setFormData] = useState({
         name: person?.name || '',
         relation: person?.relation || '',
@@ -31,7 +37,7 @@ export default function PersonForm({ person, onSubmit, onCancel }) {
     };
 
     return (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={onCancel}>
             <div className="modal animate-slide-up motion-modal-sheet" onClick={(e) => e.stopPropagation()}>
                 <h2 className="modal-title">{person ? '修撰人物' : '录入江湖人'}</h2>
                 <form onSubmit={handleSubmit}>

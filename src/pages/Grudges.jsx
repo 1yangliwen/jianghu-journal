@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPersons, addPerson, updatePerson, deletePerson, RELATIONS } from '../db';
+import { getRelationLabel } from '../utils/labels';
 import PersonForm from '../components/PersonForm';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function GrudgesPage() {
     const navigate = useNavigate();
     const [persons, setPersons] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingPerson, setEditingPerson] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterRelation, setFilterRelation] = useState('');
     const [loading, setLoading] = useState(true);
@@ -41,16 +44,14 @@ export default function GrudgesPage() {
         setShowForm(true);
     };
 
-    const handleDelete = async (id) => {
-        if (confirm('确定要焚毁此人之记录？所有相关恩怨也将一并消失。')) {
-            await deletePerson(id);
-            loadPersons();
-        }
+    const handleDelete = (id) => {
+        setConfirmDelete(id);
     };
 
-    const getRelationLabel = (value) => {
-        const rel = RELATIONS.find((r) => r.value === value);
-        return rel ? rel.label : value;
+    const handleConfirmDelete = async () => {
+        await deletePerson(confirmDelete);
+        setConfirmDelete(null);
+        loadPersons();
     };
 
     const filteredPersons = persons.filter((p) => {
@@ -92,6 +93,7 @@ export default function GrudgesPage() {
                     />
                 </div>
 
+                <div className="toolbar-filters">
                 <div className="filter-row">
                     <span className="filter-label">关系</span>
                     <div className="filter-group">
@@ -112,6 +114,7 @@ export default function GrudgesPage() {
                         ))}
                     </div>
                 </div>
+                </div>
             </section>
 
             {loading ? (
@@ -125,6 +128,11 @@ export default function GrudgesPage() {
                     <p className="empty-state-text">
                         {searchQuery || filterRelation ? '未检得此人卷宗。' : '恩仇簿尚无人名，先录入一位来往之人。'}
                     </p>
+                    {!searchQuery && !filterRelation && (
+                        <button className="btn btn-primary empty-state-action" onClick={() => setShowForm(true)}>
+                            录入人物
+                        </button>
+                    )}
                 </div>
             ) : (
                 <div key={motionKey} className="bulletin-board dossier-wall motion-section">
@@ -157,7 +165,7 @@ export default function GrudgesPage() {
 
                                     <div className="person-card-content">
                                         <div className="person-card-fileline">
-                                            <span>卷号 {String(person.id).padStart(3, '0')}</span>
+                                            <span>卷号 {String(index + 1).padStart(3, '0')}</span>
                                             <span>人物档案</span>
                                         </div>
                                         <div className="person-avatar-wrapper">
@@ -181,6 +189,12 @@ export default function GrudgesPage() {
                                             <span className="karma-note">
                                                 共记 {person.eventCount || 0} 事
                                             </span>
+                                        </div>
+                                        <div className="karma-bar-track">
+                                            <div
+                                                className={`karma-bar-fill ${(person.karmaScore || 0) >= 0 ? 'karma-bar-favor' : 'karma-bar-grudge'}`}
+                                                style={{ width: `${Math.min(Math.abs(person.karmaScore || 0) * 4, 100)}%` }}
+                                            />
                                         </div>
 
                                         <div className="person-card-footer-note">
@@ -223,6 +237,14 @@ export default function GrudgesPage() {
                         setShowForm(false);
                         setEditingPerson(null);
                     }}
+                />
+            )}
+
+            {confirmDelete !== null && (
+                <ConfirmDialog
+                    message="确定要焚毁此人之记录？所有相关恩怨也将一并消失，此操作无法撤回。"
+                    onConfirm={handleConfirmDelete}
+                    onCancel={() => setConfirmDelete(null)}
                 />
             )}
         </div>

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { exportData, importData } from '../db';
 import {
     getStoredKey,
@@ -13,12 +13,16 @@ import {
     fetchModels,
 } from '../services/aiService';
 import { useTheme } from '../contexts/ThemeContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function SettingsPage() {
     const fileInputRef = useRef(null);
     const { homeMode, setHomeMode } = useTheme();
     const [message, setMessage] = useState(null);
+    const messageTimerRef = useRef(null);
     const [importing, setImporting] = useState(false);
+    const [confirmImport, setConfirmImport] = useState(false);
+    const [pendingImportFile, setPendingImportFile] = useState(null);
     const [apiKey, setApiKey] = useState('');
     const [baseUrl, setBaseUrl] = useState('');
     const [proxyUrl, setProxyUrl] = useState('');
@@ -50,9 +54,15 @@ export default function SettingsPage() {
         }
     }, []);
 
+    const showMessage = useCallback((msg) => {
+        setMessage(msg);
+        clearTimeout(messageTimerRef.current);
+        messageTimerRef.current = setTimeout(() => setMessage(null), 3500);
+    }, []);
+
     const handleSaveKey = () => {
         if (!apiKey.trim()) {
-            setMessage({ type: 'error', text: '请输入有效的 API Key。' });
+            showMessage({ type: 'error', text: '请输入有效的 API Key。' });
             return;
         }
 
@@ -64,7 +74,7 @@ export default function SettingsPage() {
             setStoredModel(selectedModel);
         }
 
-        setMessage({ type: 'success', text: '天机令与相关配置已妥善封存。' });
+        showMessage({ type: 'success', text: '天机令与相关配置已妥善封存。' });
     };
 
     const handleTestKey = async () => {
@@ -75,9 +85,9 @@ export default function SettingsPage() {
             await verifyApiKey(apiKey.trim());
             const models = await fetchModels(apiKey.trim());
             setAvailableModels(models);
-            setMessage({ type: 'success', text: '天机连通无碍，可继续借其拟题。' });
+            showMessage({ type: 'success', text: '天机连通无碍，可继续借其拟题。' });
         } catch {
-            setMessage({ type: 'error', text: '天机未通，请检查 Key、代理或网络设置。' });
+            showMessage({ type: 'error', text: '天机未通，请检查 Key、代理或网络设置。' });
         } finally {
             setVerifying(false);
         }
@@ -86,32 +96,33 @@ export default function SettingsPage() {
     const handleExport = async () => {
         try {
             await exportData();
-            setMessage({ type: 'success', text: '馆藏已传书备份。' });
+            showMessage({ type: 'success', text: '馆藏已传书备份。' });
         } catch (error) {
-            setMessage({ type: 'error', text: `传书失败：${error.message}` });
+            showMessage({ type: 'error', text: `传书失败：${error.message}` });
         }
     };
 
-    const handleImport = async (event) => {
+    const handleImport = (event) => {
         const file = event.target.files?.[0];
         if (!file) return;
-
-        if (!confirm('收录新卷将覆盖现有全部记录，确定继续？')) {
-            fileInputRef.current.value = '';
-            return;
-        }
-
-        setImporting(true);
-        try {
-            const result = await importData(file);
-            setMessage({ type: 'success', text: `${result.message}，请刷新页面查阅。` });
-        } catch (error) {
-            setMessage({ type: 'error', text: error.message });
-        }
-
-        setImporting(false);
+        setPendingImportFile(file);
+        setConfirmImport(true);
         fileInputRef.current.value = '';
     };
+
+    const handleConfirmImport = useCallback(async () => {
+        if (!pendingImportFile) return;
+        setConfirmImport(false);
+        setImporting(true);
+        try {
+            const result = await importData(pendingImportFile);
+            showMessage({ type: 'success', text: `${result.message}，请刷新页面查阅。` });
+        } catch (error) {
+            showMessage({ type: 'error', text: error.message });
+        }
+        setImporting(false);
+        setPendingImportFile(null);
+    }, [pendingImportFile]);
 
     return (
         <div className="page-shell animate-fade-in motion-page-shell" data-motion="page">
@@ -327,6 +338,14 @@ export default function SettingsPage() {
                     </div>
                 </section>
             </div>
+
+            {confirmImport && (
+                <ConfirmDialog
+                    message="收录新卷将覆盖现有全部记录，此操作无法撤回，确定继续？"
+                    onConfirm={handleConfirmImport}
+                    onCancel={() => { setConfirmImport(false); setPendingImportFile(null); }}
+                />
+            )}
         </div>
     );
 }

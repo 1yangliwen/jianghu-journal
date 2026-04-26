@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function EventForm({ personName, event, onSubmit, onCancel }) {
+    useEffect(() => {
+        const handleKey = (e) => { if (e.key === 'Escape') onCancel(); };
+        document.addEventListener('keydown', handleKey);
+        return () => document.removeEventListener('keydown', handleKey);
+    }, [onCancel]);
     const [formData, setFormData] = useState({
         type: event?.type || 'favor', // 'favor' = 恩, 'grudge' = 仇
         score: event?.score || 1,
@@ -25,7 +30,7 @@ export default function EventForm({ personName, event, onSubmit, onCancel }) {
     };
 
     return (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={onCancel}>
             <div className="modal animate-slide-up motion-modal-sheet" onClick={(e) => e.stopPropagation()}>
                 <h2 className="modal-title">
                     {event ? '修撰恩怨' : `记「${personName}」之事`}

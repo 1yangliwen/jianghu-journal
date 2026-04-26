@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MOODS, SCENES } from '../db';
 import { generateTitle } from '../utils/titleGenerator';
 import { generateAiTitle, getStoredKey } from '../services/aiService';
@@ -19,8 +19,14 @@ export default function MomentForm({ moment, onSubmit, onCancel }) {
     });
 
     const [generating, setGenerating] = useState(false);
-    const [recordType, setRecordType] = useState('present'); // 'present' | 'past'
+    const [recordType, setRecordType] = useState('present');
     const [aiError, setAiError] = useState(null);
+
+    useEffect(() => {
+        const handleKey = (e) => { if (e.key === 'Escape') onCancel(); };
+        document.addEventListener('keydown', handleKey);
+        return () => document.removeEventListener('keydown', handleKey);
+    }, [onCancel]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -71,7 +77,7 @@ export default function MomentForm({ moment, onSubmit, onCancel }) {
     };
 
     return (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={onCancel}>
             <div className="modal modal-wide animate-slide-up motion-modal-sheet" onClick={(e) => e.stopPropagation()}>
                 <h2 className="modal-title">{moment ? '修撰记忆' : '提笔记事'}</h2>
                 <form onSubmit={handleSubmit}>

@@ -252,6 +252,7 @@ img {
   color: var(--sidebar-text);
   background: var(--sidebar-active);
   border-color: rgba(255, 233, 191, 0.12);
+  text-shadow: 0 0 12px rgba(192, 160, 106, 0.5);
 }
 
 .nav-item.active::before {
@@ -650,6 +651,19 @@ img {
 
 .text-link:hover,
 .text-button:hover {
+  color: var(--seal-red);
+}
+
+.expand-btn {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: var(--bronze);
+  padding: 0;
+  cursor: pointer;
+}
+
+.expand-btn:hover {
   color: var(--seal-red);
 }
 
@@ -1272,6 +1286,10 @@ img {
   margin: 0 auto;
 }
 
+.empty-state-action {
+  margin-top: 20px;
+}
+
 .timeline-container {
   position: relative;
   padding-left: 32px;
@@ -1405,6 +1423,13 @@ img {
 
 .entry-paragraph {
   white-space: pre-wrap;
+}
+
+.entry-paragraph-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .entry-meta-list {
@@ -1591,6 +1616,28 @@ img {
 .karma-note {
   font-size: 0.84rem;
   color: var(--ink-faint);
+}
+
+.karma-bar-track {
+  margin-top: 8px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--divider-soft);
+  overflow: hidden;
+}
+
+.karma-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width var(--motion-base) var(--ease-soft);
+}
+
+.karma-bar-favor {
+  background: linear-gradient(90deg, #6a9b7e, #3d7a5a);
+}
+
+.karma-bar-grudge {
+  background: linear-gradient(90deg, var(--seal-red), #c45a4a);
 }
 
 .person-card-footer-note {
@@ -2049,6 +2096,10 @@ img {
   gap: 28px;
 }
 
+.fantasy-mobile-bar {
+  display: none;
+}
+
 .ink-action-btn {
   color: var(--ink-main);
   opacity: 0.76;
@@ -2422,6 +2473,28 @@ img {
     display: none;
   }
 
+  .fantasy-mobile-bar {
+    display: flex;
+    position: absolute;
+    bottom: 18%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    gap: 28px;
+    padding: 10px 24px;
+    border-radius: 99px;
+    background: rgba(30, 22, 15, 0.52);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(214, 185, 137, 0.18);
+  }
+
+  .fantasy-mobile-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
   .guixu-actions {
     bottom: 6%;
     gap: 18px;
@@ -2438,6 +2511,18 @@ img {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+.confirm-dialog {
+  max-width: 420px;
+  width: 90%;
+  padding: 32px;
+}
+
+.confirm-dialog-message {
+  margin: 16px 0 24px;
+  color: var(--ink-soft);
+  line-height: 1.7;
 }
 
 @media (prefers-reduced-motion: reduce) {

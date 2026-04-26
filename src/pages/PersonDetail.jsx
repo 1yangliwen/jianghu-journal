@@ -1,13 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getPerson, addEvent, updateEvent, deleteEvent, updatePerson, RELATIONS } from '../db';
+import { getPerson, addEvent, updateEvent, deleteEvent, updatePerson } from '../db';
+import { getRelationLabel } from '../utils/labels';
 import EventForm from '../components/EventForm';
 import PersonForm from '../components/PersonForm';
-
-const getRelationLabel = (value) => {
-    const relation = RELATIONS.find((item) => item.value === value);
-    return relation ? relation.label : value;
-};
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const formatDate = (dateStr) => {
     if (!dateStr) return '未署年月';
@@ -35,6 +32,7 @@ export default function PersonDetailPage() {
     const [showEventForm, setShowEventForm] = useState(false);
     const [showPersonForm, setShowPersonForm] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
+    const [confirmDeleteEvent, setConfirmDeleteEvent] = useState(null);
     const [loading, setLoading] = useState(true);
 
     const loadPerson = useCallback(async () => {
@@ -71,11 +69,14 @@ export default function PersonDetailPage() {
         loadPerson();
     };
 
-    const handleEventDelete = async (eventId) => {
-        if (confirm('确定要焚毁此段恩怨？')) {
-            await deleteEvent(eventId);
-            loadPerson();
-        }
+    const handleEventDelete = (eventId) => {
+        setConfirmDeleteEvent(eventId);
+    };
+
+    const handleConfirmEventDelete = async () => {
+        await deleteEvent(confirmDeleteEvent);
+        setConfirmDeleteEvent(null);
+        loadPerson();
     };
 
     if (loading) {
@@ -253,6 +254,14 @@ export default function PersonDetailPage() {
                     person={person}
                     onSubmit={handlePersonSubmit}
                     onCancel={() => setShowPersonForm(false)}
+                />
+            )}
+
+            {confirmDeleteEvent !== null && (
+                <ConfirmDialog
+                    message="确定要焚毁此段恩怨？此操作无法撤回。"
+                    onConfirm={handleConfirmEventDelete}
+                    onCancel={() => setConfirmDeleteEvent(null)}
                 />
             )}
         </div>

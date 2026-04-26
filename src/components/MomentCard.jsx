@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { MOODS, SCENES } from '../db';
 
 export default function MomentCard({ moment, onEdit, onDelete }) {
+    const [expanded, setExpanded] = useState(false);
     const mood = MOODS.find((m) => m.value === moment.mood);
     const scene = SCENES.find((s) => s.value === moment.scene);
+    const isLong = moment.content.length > 120;
 
     const formatDate = (dateStr) => {
         if (!dateStr) return '未知';
@@ -28,13 +31,22 @@ export default function MomentCard({ moment, onEdit, onDelete }) {
                     <h3 className="card-title">{moment.title}</h3>
                 </div>
                 <div className="entry-badges">
-                    {mood && <span className="badge badge-neutral">{mood.label}</span>}
+                    {mood && <span className="badge badge-neutral">{mood.emoji} {mood.label}</span>}
                     {scene && <span className="badge badge-relation">{scene.label}</span>}
                 </div>
             </div>
 
             <div className="card-content entry-body">
-                <p className="entry-paragraph">{moment.content}</p>
+                <p className={`entry-paragraph${isLong && !expanded ? ' entry-paragraph-clamp' : ''}`}>{moment.content}</p>
+                {isLong && (
+                    <button
+                        type="button"
+                        className="text-button expand-btn"
+                        onClick={() => setExpanded((v) => !v)}
+                    >
+                        {expanded ? '收起' : '展开全文'}
+                    </button>
+                )}
 
                 <div className="annotation-block entry-annotation">
                     <span className="annotation-label">落款与时序</span>

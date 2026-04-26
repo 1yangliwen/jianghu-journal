@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { getMoments, addMoment, updateMoment, deleteMoment, MOODS, SCENES } from '../db';
 import MomentForm from '../components/MomentForm';
 import MomentCard from '../components/MomentCard';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 export default function MomentsPage() {
     const [moments, setMoments] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingMoment, setEditingMoment] = useState(null);
+    const [confirmDelete, setConfirmDelete] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterMood, setFilterMood] = useState('');
     const [filterScene, setFilterScene] = useState('');
@@ -15,8 +17,7 @@ export default function MomentsPage() {
     const loadMoments = async () => {
         setLoading(true);
         const data = await getMoments();
-        // 按创建时间倒序
-        data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        data.sort((a, b) => new Date(b.rememberedAt || b.createdAt) - new Date(a.rememberedAt || a.createdAt));
         setMoments(data);
         setLoading(false);
     };
@@ -41,11 +42,14 @@ export default function MomentsPage() {
         setShowForm(true);
     };
 
-    const handleDelete = async (id) => {
-        if (confirm('确定要焚毁这段记忆吗？')) {
-            await deleteMoment(id);
-            loadMoments();
-        }
+    const handleDelete = (id) => {
+        setConfirmDelete(id);
+    };
+
+    const handleConfirmDelete = async () => {
+        await deleteMoment(confirmDelete);
+        setConfirmDelete(null);
+        loadMoments();
     };
 
     const filteredMoments = moments.filter((m) => {
@@ -147,6 +151,11 @@ export default function MomentsPage() {
                             ? '未检得相应条目，请换个签条再查。'
                             : '浮生录尚未立卷，先记下一段当下或往昔。'}
                     </p>
+                    {!searchQuery && !filterMood && !filterScene && (
+                        <button className="btn btn-primary empty-state-action" onClick={() => setShowForm(true)}>
+                            提笔立卷
+                        </button>
+                    )}
                 </div>
             ) : (
                 <div key={motionKey} className="timeline-container motion-stagger-group">
@@ -175,6 +184,14 @@ export default function MomentsPage() {
                         setShowForm(false);
                         setEditingMoment(null);
                     }}
+                />
+            )}
+
+            {confirmDelete !== null && (
+                <ConfirmDialog
+                    message="确定要焚毁这段记忆吗？此操作无法撤回。"
+                    onConfirm={handleConfirmDelete}
+                    onCancel={() => setConfirmDelete(null)}
                 />
             )}
         </div>

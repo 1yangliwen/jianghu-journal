@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getMoments, getPersons, RELATIONS, SCENES } from '../db';
+import { getMoments, getPersons } from '../db';
+import { getRelationLabel, getSceneLabel } from '../utils/labels';
 import { useTheme } from '../contexts/ThemeContext';
 
 const toChineseNum = (num) => {
@@ -30,15 +31,6 @@ const formatCompactDate = (dateStr) => {
     });
 };
 
-const getRelationLabel = (value) => {
-    const relation = RELATIONS.find((item) => item.value === value);
-    return relation ? relation.label : value;
-};
-
-const getSceneLabel = (value) => {
-    const scene = SCENES.find((item) => item.value === value);
-    return scene ? scene.label : value;
-};
 
 const createSpringPetals = () => Array.from({ length: 30 }, (_, index) => ({
     id: `spring-${index}`,
@@ -197,7 +189,7 @@ function DossierHome({ stats, recentMoments, notablePersons, randomVerse, homeMo
                     <div className="folio-heading">
                         <div>
                             <p className="section-kicker">人物</p>
-                            <h2>关系异动</h2>
+                            <h2>近期往来</h2>
                         </div>
                         <Link to="/grudges" className="text-link">翻阅簿册</Link>
                     </div>
@@ -495,6 +487,21 @@ function FantasyHome({ stats, randomVerse, homeMode, setHomeMode }) {
                 </div>
             )}
 
+            <div className="fantasy-mobile-bar">
+                <div className="fantasy-mobile-stat">
+                    <span className="ink-label red">仇</span>
+                    <span className="ink-num">{stats.grudgeScore}</span>
+                </div>
+                <div className="fantasy-mobile-stat">
+                    <span className="ink-label">人</span>
+                    <span className="ink-num">{toChineseNum(stats.personCount)}</span>
+                </div>
+                <div className="fantasy-mobile-stat">
+                    <span className="ink-label gold">恩</span>
+                    <span className="ink-num">{stats.favorScore}</span>
+                </div>
+            </div>
+
             <div className="guixu-actions">
                 <Link to="/moments" className="ink-action-btn">
                     <span className="action-text">提笔</span>
@@ -538,7 +545,7 @@ export default function HomePage() {
             const persons = await getPersons();
 
             const sortedMoments = [...moments].sort((a, b) => new Date(b.rememberedAt || b.createdAt) - new Date(a.rememberedAt || a.createdAt));
-            const sortedPersons = [...persons].sort((a, b) => Math.abs(b.karmaScore || 0) - Math.abs(a.karmaScore || 0));
+            const sortedPersons = [...persons].sort((a, b) => new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt));
 
             let favor = 0;
             let grudge = 0;
